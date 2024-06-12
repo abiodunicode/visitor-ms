@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head,useForm } from '@inertiajs/vue3';
+import { ref,Ref, onMounted,onUnmounted } from 'vue';
+
+
+
 </script>
 
 <template>
@@ -14,7 +18,10 @@ import { Head } from '@inertiajs/vue3';
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">You're logged in!</div>
+                    <div class="p-6 text-gray-900">This Dashboard will show all Analytics of Visits</div>
+
+
+
                 </div>
             </div>
         </div>

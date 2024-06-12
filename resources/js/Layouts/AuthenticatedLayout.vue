@@ -30,8 +30,15 @@ const showingNavigationDropdown = ref(false);
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                                    Dashboard changed by temi
+                                    Dashboards
                                 </NavLink>
+
+                                <NavLink :href="route('visitors.index')"  :active="route().current('visitors.index')">
+                                    Visitors
+                                </NavLink>
+<!--                                visitors.index-->
+
+
                             </div>
                         </div>
 
@@ -115,6 +122,10 @@ const showingNavigationDropdown = ref(false);
                         <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
                             Dashboard
                         </ResponsiveNavLink>
+
+
+
+
                     </div>
 
                     <!-- Responsive Settings Options -->
