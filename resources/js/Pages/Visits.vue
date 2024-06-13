@@ -1,0 +1,434 @@
+<script setup lang="ts">
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { Head, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import TextInputx from '@/Components/TextInputx.vue';
+import InputLabelx from '@/Components/InputLabelx.vue';
+import PrimaryButtonx from '@/Components/PrimaryButtonx.vue';
+import DeleteConfirmationModal from '@/Components/DeleteConfirmatiomModal.vue'
+
+// Props
+const props = defineProps({
+   visits: Array<Data>
+});
+
+// Delete confirmation modal
+const deleteConfirmationMessage = ref("Are you sure you want to delete this Host?");
+const deleteConfirmButtonText = ref("Yes, I'm sure");
+const deleteCancelButtonText = ref("No, cancel");
+
+const showModal = ref<boolean>(false);
+const editMode = ref<boolean>(false);
+const deleteModal = ref<boolean>(false);
+const currentId = ref<string>('');
+
+interface Data {
+    visit_id: number,
+    visitor_name: string,
+    visitor_email: string,
+    visitor_company: string,
+    host_name: string,
+    host_department: string,
+    host_position: string,
+    date: string; // Use string to represent just the date in format YYYY-MM-DD
+    check_in_time: string; // Use string to represent time
+    check_out_time: string;
+    purpose: string;
+    status: string;
+}
+const form = useForm<Data>({
+    visit_id:0,
+    visitor_name: '',
+    visitor_email: '',
+    visitor_company: '',
+    host_name: '',
+    host_department: '',
+    host_position: '',
+    date: "", // Just the date
+    check_in_time: "", // Just the time
+    check_out_time: "",
+    purpose: '',
+    status: '',
+});
+
+const deleteData = () => {
+    const visit_id = currentId.value;
+    console.log(visit_id);
+    form.delete(route('visits.destroy', { visit:visit_id }), {
+        onFinish: () => {
+            deleteModal.value = false;
+        },
+    });
+};
+
+const getId = (visits: Data) => {
+    currentId.value = String(visits.visit_id);
+    deleteModal.value = true;
+    
+};
+
+const closedeltemodal = () => {
+    deleteModal.value = false;
+};
+
+const submit = () => {
+    form.post(route('visits.store'), {
+        onFinish: () => {
+            showModal.value = false;
+        },
+    });
+};
+
+const updateData = () => {
+    form.patch(route('visits.update', { visits: form.visit_id }), {
+        onFinish: () => {
+            form.reset();
+            showModal.value = false;
+        },
+    });
+};
+
+const editModal = (visits:Data) => {
+    showModal.value = false;
+    formreset();
+    editMode.value = true;
+    form.visit_id = visits.visit_id;
+    form.visitor_name= visits.visitor_name;
+    form.visitor_email= visits.visitor_email;
+    form.visitor_company= visits.visitor_company;
+    form.host_name= visits.host_name;
+    form.host_department= visits.host_department;
+    form.host_position= visits.host_position;
+    form.date = visits.date;
+    form.check_in_time = visits.check_in_time;
+    form.check_out_time = visits.check_out_time;
+    form.purpose = visits.purpose;
+    form.status = visits.status;
+
+    showModal.value = true;
+};
+
+const formreset = () => {
+    form.visitor_name = '';
+    form.visitor_email ='';
+    form.visitor_company= '';
+    form.host_name = '';
+    form.host_department= '';
+    form.host_position= '';
+    form.date = '';
+    form.check_in_time = '';
+    form.check_out_time = '';
+    form.purpose = '';
+    form.status = '';
+};
+
+const newModal = () => {
+    showModal.value = false;
+    formreset();
+    showModal.value = true;
+};
+
+const closeModal = () => {
+    showModal.value = false;
+    editMode.value = false;
+};
+</script>
+
+<template>
+    <Head title="Dashboard" />
+
+    <AuthenticatedLayout>
+        <template #header>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Dashboard</h2>
+        </template>
+
+        <div class="py-12">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+                        <div class="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 pb-4 bg-white">
+                            <div class="ml-5 mt-4">
+                                <button @click="newModal" data-modal-target="static-modal" data-modal-toggle="static-modal" class="pl-4 px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300" type="button">
+                                    <div class="pr-1">Add</div>
+                                    <svg class="w-3 h-3 text-white mb-1 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 16">
+                                        <path d="M11 11V5H13V11H19V13H13V19H11V13H5V11H11Z"></path>
+                                    </svg>
+                                </button>
+
+                                <div v-show="showModal" class="fixed inset-0 bg-black bg-opacity-50"></div>
+                                <div :class="{ 'hidden': !showModal }" id="static-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="flex overflow-y-auto overflow-x-hidden fixed top-1/2 right-1/2 left-1/2 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                                    <div class="relative p-4 w-full max-w-2xl max-h-full">
+                                        <div class="relative bg-white rounded-lg shadow">
+                                            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                                                <h3 class="text-xl font-semibold text-gray-900" v-if="!editMode">Add Host</h3>
+                                                <h3 class="text-xl font-semibold text-gray-900" v-if="editMode">Edit Host</h3>
+                                                <button @click="closeModal" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="static-modal">
+                                                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                                                    </svg>
+                                                    <span class="sr-only">Close modal</span>
+                                                </button>
+                                            </div>
+                                            <div class="p-4 md:p-5 space-y-4">
+                                                <form class="max-w-sm mx-auto">
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="name" value="Visitor Name" />
+                                                        <TextInputx
+                                                            id="visitor_name"
+                                                            type="text"
+                                                            v-model="form.visitor_name"
+                                                            required
+                                                            autofocus
+                                                            placeholder="Omoboriola Chukwudi Danjuma"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>  <div class="mb-5">
+                                                        <InputLabelx for="visitor_email" value="Visitor email" />
+                                                        <TextInputx
+                                                            id="visitor_email"
+                                                            type="email"
+                                                            v-model="form.visitor_email"
+                                                            required
+                                                            autofocus
+                                                            placeholder="Omoboriola Chukwudi Danjuma"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>  <div class="mb-5">
+                                                        <InputLabelx for="visitor_company" value="Visitor company" />
+                                                        <TextInputx
+                                                            id="visitor_company"
+                                                            type="text"
+                                                            v-model="form.visitor_company"
+                                                            required
+                                                            autofocus
+                                                            placeholder="Omoboriola Chukwudi Danjuma"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="host_name" value="Host Name" />
+                                                        <TextInputx
+                                                            id="host_name"
+                                                            type="text"
+                                                            v-model="form.host_name"
+                                                            required
+                                                            autofocus
+                                                            placeholder="Omoboriola Chukwudi Danjuma"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="host_department" value="Host Department" />
+                                                        <TextInputx
+                                                            id="host_department"
+                                                            type="text"
+                                                            v-model="form.host_department"
+                                                            required
+                                                            autofocus
+                                                            placeholder="example@example.com"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="host_position" value="Host Possition" />
+                                                        <TextInputx
+                                                            id="host_position"
+                                                            type="text"
+                                                            v-model="form.host_position"
+                                                            required
+                                                            autofocus
+                                                            placeholder="example@example.com"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="date" value="Date" />
+                                                        <TextInputx
+                                                            id="date"
+                                                            type="date"
+                                                            v-model="form.date"
+                                                            required
+                                                            autofocus
+                                                            placeholder="mm/dd/yyyy"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="check_in_time" value="Check In At" />
+                                                        <TextInputx
+                                                            id="check_in_time"
+                                                            type="time"
+                                                            v-model="form.check_in_time"
+                                                            required
+                                                            autofocus
+                                                            placeholder="HH:mm:ss"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="check_out_time" value="Check Out At" />
+                                                        <TextInputx
+                                                            id="check_out_time"
+                                                            type="time"
+                                                            v-model="form.check_out_time"
+                                                            required
+                                                            autofocus
+                                                            placeholder="HH:mm:ss"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="purpose" value="Purpose" />
+                                                        <TextInputx
+                                                            id="purpose"
+                                                            type="text"
+                                                            v-model="form.purpose"
+                                                            required
+                                                            autofocus
+                                                            placeholder=""
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="status" value="Status" />
+                                                        <TextInputx
+                                                            id="status"
+                                                            type="text"
+                                                            v-model="form.status"
+                                                            required
+                                                            autofocus
+                                                            placeholder=""
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
+                                                </form>
+                                            </div>
+                                            <div class="flex justify-center items-center p-4 md:p-5 border-t border-gray-200 rounded-b">
+                                                <PrimaryButtonx @click="submit" v-if="!editMode" class="text-center" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                                                    Create
+                                                </PrimaryButtonx>
+                                                <PrimaryButtonx @click="updateData" v-show="editMode" class="text-center" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                                                    Update
+                                                </PrimaryButtonx>
+                                                <button @click="closeModal" type="button" class="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Cancel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <!-- Reusable Delete Confirmation Modal -->
+                                    <delete-confirmation-modal
+                                        :show-modal="deleteModal"
+                                        :message="deleteConfirmationMessage"
+                                        :confirm-button-text="deleteConfirmButtonText"
+                                        :cancel-button-text="deleteCancelButtonText"
+                                        :confirm-action="deleteData"
+                                        :close-modal="closedeltemodal"
+                                    />
+                                </div>                            </div>
+                        </div>
+
+                        <table class="w-full text-sm text-left rtl:text-right text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="p-4">
+                                    <div class="flex items-center">
+                                        <input id="checkbox-all-search" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                                        <label for="checkbox-all-search" class="sr-only">checkbox</label>
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Visitor name
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Visitor Email
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Visitor Company
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                   Host Name
+                                  </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Host Department
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Host Position
+                                  </th>
+                                  <th scope="col" class="px-6 py-3">
+                                    Date
+                                  </th>
+                                  <th scope="col" class="px-6 py-3">
+                                    Check In At
+                                  </th>
+                                  <th scope="col" class="px-6 py-3">
+                                    Check Out At
+                                  </th>
+                                  <th scope="col" class="px-6 py-3">
+                                    Purpose
+                                  </th>
+                                  <th scope="col" class="px-6 py-3">
+                                    Status
+                                  </th>
+                                <th scope="col" class="px-6 py-3">
+                                 Actions
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr v-for="visit in visits" :key="visit.visit_id" class="bg-white border-b hover:bg-gray-50">
+                                <td class="w-4 p-4">
+                                    <div class="flex items-center">
+                                        <input id="checkbox-table-search-1" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                                        <label for="checkbox-table-search-1" class="sr-only">checkbox</label>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ visit.visitor_name }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ visit.visitor_email }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ visit.visitor_company }}
+                                </td>
+    
+                                <td class="px-6 py-4">
+                                    {{ visit.host_name }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ visit.host_department }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ visit.host_position }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ visit.date }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ visit.check_in_time }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ visit.check_out_time }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ visit.purpose }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ visit.status }}
+                                </td>
+                            
+                                <td class="px-6 py-4">
+                                    <a href="#" @click.stop="editModal(visit)" class="font-medium text-blue-600 hover:underline">Edit</a> /
+                                    <a href="#" @click.stop="getId(visit), console.log(currentId.valueOf);" class="font-medium text-red-600 hover:underline">Delete</a>
+                                </td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </AuthenticatedLayout>
+</template>
