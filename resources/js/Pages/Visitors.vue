@@ -14,7 +14,7 @@ const props = defineProps({
 });
 
 //Delete one confirm
-const deleteConfirmationMessage = ref("Are you sure you want to delete this Port Code(s)?");
+const deleteConfirmationMessage = ref("Are you sure you want to delete this Visitor(s)?");
 const deleteConfirmButtonText = ref("Yes, I'm sure");
 const deleteCancelButtonText = ref("No, cancel");
 
