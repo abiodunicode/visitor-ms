@@ -9,7 +9,7 @@ import DeleteConfirmationModal from '@/Components/DeleteConfirmatiomModal.vue'
 
 // Props
 const props = defineProps({
-   visits: Array<Data>
+    visits: Array<Data>
 });
 
 // Delete confirmation modal
@@ -23,37 +23,39 @@ const deleteModal = ref<boolean>(false);
 const currentId = ref<string>('');
 
 interface Data {
-    visit_id: number,
-    visitor_name: string,
-    visitor_email: string,
-    visitor_company: string,
-    host_name: string,
-    host_department: string,
-    host_position: string,
-    date: string; // Use string to represent just the date in format YYYY-MM-DD
-    check_in_time: string; // Use string to represent time
+    visit_id:number;
+    visitor_name: string;
+    visitor_email: string;
+    visitor_company: string;
+    host_name: string;
+    host_position: string;
+    host_department: string;
+    date:string;
+    check_in_time: string;
     check_out_time: string;
-    purpose: string;
-    status: string;
+    purpose:string;
+    status:string;
 }
 const form = useForm<Data>({
     visit_id:0,
     visitor_name: '',
     visitor_email: '',
     visitor_company: '',
-    host_name: '',
-    host_department: '',
+    host_name:'',
     host_position: '',
-    date: "", // Just the date
-    check_in_time: "", // Just the time
-    check_out_time: "",
+    host_department: '',
+    date: '',
+    check_in_time: '',
+    check_out_time: '',
     purpose: '',
-    status: '',
+    status: '',  
 });
+
+
 
 const deleteData = () => {
     const visit_id = currentId.value;
-    console.log(visit_id);
+    console.log(currentId.value);
     form.delete(route('visits.destroy', { visit:visit_id }), {
         onFinish: () => {
             deleteModal.value = false;
@@ -61,10 +63,9 @@ const deleteData = () => {
     });
 };
 
-const getId = (visits: Data) => {
-    currentId.value = String(visits.visit_id);
+const getId = (visit: Data) => {
+    currentId.value = String(visit.visit_id);
     deleteModal.value = true;
-    
 };
 
 const closedeltemodal = () => {
@@ -79,8 +80,10 @@ const submit = () => {
     });
 };
 
+console.log(form.visit_id)
 const updateData = () => {
-    form.patch(route('visits.update', { visits: form.visit_id }), {
+    console.log(form.visit_id)
+    form.patch(route('visits.update', { visit:form.visit_id }), {
         onFinish: () => {
             form.reset();
             showModal.value = false;
@@ -88,38 +91,39 @@ const updateData = () => {
     });
 };
 
-const editModal = (visits:Data) => {
+const editModal = (visit:Data) => {
     showModal.value = false;
     formreset();
     editMode.value = true;
-    form.visit_id = visits.visit_id;
-    form.visitor_name= visits.visitor_name;
-    form.visitor_email= visits.visitor_email;
-    form.visitor_company= visits.visitor_company;
-    form.host_name= visits.host_name;
-    form.host_department= visits.host_department;
-    form.host_position= visits.host_position;
-    form.date = visits.date;
-    form.check_in_time = visits.check_in_time;
-    form.check_out_time = visits.check_out_time;
-    form.purpose = visits.purpose;
-    form.status = visits.status;
+
+    form.visit_id = visit.visit_id;
+    form.visitor_name = visit.visitor_name;
+    form.visitor_email = visit.visitor_email;
+    form.visitor_company = visit.visitor_company;
+    form.host_name = visit.host_name;
+    form.host_position = visit.host_position;
+    form.host_department = visit.host_department;
+    form.date = visit.date;
+    form.check_in_time = visit.check_in_time;
+    form.check_out_time = visit.check_out_time;
+    form.purpose = visit.purpose;
+    form.status = visit.status;
+   
 
     showModal.value = true;
 };
 
 const formreset = () => {
-    form.visitor_name = '';
-    form.visitor_email ='';
-    form.visitor_company= '';
-    form.host_name = '';
-    form.host_department= '';
-    form.host_position= '';
-    form.date = '';
-    form.check_in_time = '';
-    form.check_out_time = '';
-    form.purpose = '';
-    form.status = '';
+    form.visitor_name   = ''; 
+    form.visitor_email   = '';
+    form.visitor_company   = ''; 
+    form.host_name   = '';
+    form.host_department   = '';
+    form.date   = ''; 
+    form.check_in_time   = ''; 
+    form.check_out_time   = '';
+    form.purpose   = '';
+    form.status   = '';
 };
 
 const newModal = () => {
@@ -160,8 +164,8 @@ const closeModal = () => {
                                     <div class="relative p-4 w-full max-w-2xl max-h-full">
                                         <div class="relative bg-white rounded-lg shadow">
                                             <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
-                                                <h3 class="text-xl font-semibold text-gray-900" v-if="!editMode">Add Host</h3>
-                                                <h3 class="text-xl font-semibold text-gray-900" v-if="editMode">Edit Host</h3>
+                                                <h3 class="text-xl font-semibold text-gray-900" v-if="!editMode">Add Visit</h3>
+                                                <h3 class="text-xl font-semibold text-gray-900" v-if="editMode">Edit Visit</h3>
                                                 <button @click="closeModal" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="static-modal">
                                                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
@@ -182,19 +186,21 @@ const closeModal = () => {
                                                             placeholder="Omoboriola Chukwudi Danjuma"
                                                             autocomplete="off"
                                                         />
-                                                    </div>  <div class="mb-5">
-                                                        <InputLabelx for="visitor_email" value="Visitor email" />
+                                                    </div>
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="name" value="Visitor Email" />
                                                         <TextInputx
                                                             id="visitor_email"
-                                                            type="email"
+                                                            type="text"
                                                             v-model="form.visitor_email"
                                                             required
                                                             autofocus
                                                             placeholder="Omoboriola Chukwudi Danjuma"
                                                             autocomplete="off"
                                                         />
-                                                    </div>  <div class="mb-5">
-                                                        <InputLabelx for="visitor_company" value="Visitor company" />
+                                                    </div>
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="name" value="Visitor Company" />
                                                         <TextInputx
                                                             id="visitor_company"
                                                             type="text"
@@ -205,99 +211,100 @@ const closeModal = () => {
                                                             autocomplete="off"
                                                         />
                                                     </div>
+                                                
                                                     <div class="mb-5">
-                                                        <InputLabelx for="host_name" value="Host Name" />
+                                                        <InputLabelx for="host_name" value="host_name" />
                                                         <TextInputx
                                                             id="host_name"
                                                             type="text"
                                                             v-model="form.host_name"
                                                             required
                                                             autofocus
-                                                            placeholder="Omoboriola Chukwudi Danjuma"
+                                                            placeholder="Manager"
                                                             autocomplete="off"
                                                         />
                                                     </div>
                                                     <div class="mb-5">
-                                                        <InputLabelx for="host_department" value="Host Department" />
-                                                        <TextInputx
-                                                            id="host_department"
-                                                            type="text"
-                                                            v-model="form.host_department"
-                                                            required
-                                                            autofocus
-                                                            placeholder="example@example.com"
-                                                            autocomplete="off"
-                                                        />
-                                                    </div>
-                                                    <div class="mb-5">
-                                                        <InputLabelx for="host_position" value="Host Possition" />
+                                                        <InputLabelx for="name" value="Host Position" />
                                                         <TextInputx
                                                             id="host_position"
                                                             type="text"
                                                             v-model="form.host_position"
                                                             required
                                                             autofocus
-                                                            placeholder="example@example.com"
+                                                            placeholder="Manager"
                                                             autocomplete="off"
                                                         />
                                                     </div>
                                                     <div class="mb-5">
-                                                        <InputLabelx for="date" value="Date" />
+                                                        <InputLabelx for="name" value=" Host Department" />
+                                                        <TextInputx
+                                                            id="host_department"
+                                                            type="text"
+                                                            v-model="form.host_department"
+                                                            required
+                                                            autofocus
+                                                            placeholder="Sales"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="name" value="date" />
                                                         <TextInputx
                                                             id="date"
                                                             type="date"
                                                             v-model="form.date"
                                                             required
                                                             autofocus
-                                                            placeholder="mm/dd/yyyy"
+                                                            placeholder="Sales"
                                                             autocomplete="off"
                                                         />
                                                     </div>
                                                     <div class="mb-5">
-                                                        <InputLabelx for="check_in_time" value="Check In At" />
+                                                        <InputLabelx for="name" value="check_in_time" />
                                                         <TextInputx
                                                             id="check_in_time"
                                                             type="time"
                                                             v-model="form.check_in_time"
                                                             required
                                                             autofocus
-                                                            placeholder="HH:mm:ss"
+                                                            placeholder="Sales"
                                                             autocomplete="off"
                                                         />
                                                     </div>
                                                     <div class="mb-5">
-                                                        <InputLabelx for="check_out_time" value="Check Out At" />
+                                                        <InputLabelx for="name" value="Check out at" />
                                                         <TextInputx
                                                             id="check_out_time"
                                                             type="time"
                                                             v-model="form.check_out_time"
                                                             required
                                                             autofocus
-                                                            placeholder="HH:mm:ss"
+                                                            placeholder="Sales"
                                                             autocomplete="off"
                                                         />
                                                     </div>
                                                     <div class="mb-5">
-                                                        <InputLabelx for="purpose" value="Purpose" />
+                                                        <InputLabelx for="name" value="Purpose" />
                                                         <TextInputx
                                                             id="purpose"
                                                             type="text"
                                                             v-model="form.purpose"
                                                             required
                                                             autofocus
-                                                            placeholder=""
+                                                            placeholder="Sales"
                                                             autocomplete="off"
                                                         />
                                                     </div>
                                                     <div class="mb-5">
-                                                        <InputLabelx for="status" value="Status" />
+                                                        <InputLabelx for="name" value="Status" />
                                                         <TextInputx
                                                             id="status"
                                                             type="text"
                                                             v-model="form.status"
                                                             required
                                                             autofocus
-                                                            placeholder=""
+                                                            placeholder="Sales"
                                                             autocomplete="off"
                                                         />
                                                     </div>
@@ -338,7 +345,7 @@ const closeModal = () => {
                                     </div>
                                 </th>
                                 <th scope="col" class="px-6 py-3">
-                                    Visitor name
+                                    Visitor Name
                                 </th>
                                 <th scope="col" class="px-6 py-3">
                                     Visitor Email
@@ -348,30 +355,30 @@ const closeModal = () => {
                                 </th>
                                 <th scope="col" class="px-6 py-3">
                                    Host Name
-                                  </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Host Department
                                 </th>
                                 <th scope="col" class="px-6 py-3">
-                                    Host Position
-                                  </th>
-                                  <th scope="col" class="px-6 py-3">
-                                    Date
-                                  </th>
-                                  <th scope="col" class="px-6 py-3">
+                                 Host Department
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                   Host Position
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    date
+                                </th>
+                                <th scope="col" class="px-6 py-3">
                                     Check In At
-                                  </th>
-                                  <th scope="col" class="px-6 py-3">
+                                </th>
+                                <th scope="col" class="px-6 py-3">
                                     Check Out At
-                                  </th>
-                                  <th scope="col" class="px-6 py-3">
+                                </th>
+                                <th scope="col" class="px-6 py-3">
                                     Purpose
                                   </th>
                                   <th scope="col" class="px-6 py-3">
                                     Status
                                   </th>
                                 <th scope="col" class="px-6 py-3">
-                                 Actions
+                                    Action
                                 </th>
                             </tr>
                             </thead>
@@ -389,10 +396,10 @@ const closeModal = () => {
                                 <td class="px-6 py-4">
                                     {{ visit.visitor_email }}
                                 </td>
+                                
                                 <td class="px-6 py-4">
                                     {{ visit.visitor_company }}
                                 </td>
-    
                                 <td class="px-6 py-4">
                                     {{ visit.host_name }}
                                 </td>
@@ -402,6 +409,7 @@ const closeModal = () => {
                                 <td class="px-6 py-4">
                                     {{ visit.host_position }}
                                 </td>
+                               
                                 <td class="px-6 py-4">
                                     {{ visit.date }}
                                 </td>
@@ -409,7 +417,7 @@ const closeModal = () => {
                                     {{ visit.check_in_time }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    {{ visit.check_out_time }}
+                                    {{ visit.check_out_time}}
                                 </td>
                                 <td class="px-6 py-4">
                                     {{ visit.purpose }}
@@ -417,10 +425,9 @@ const closeModal = () => {
                                 <td class="px-6 py-4">
                                     {{ visit.status }}
                                 </td>
-                            
                                 <td class="px-6 py-4">
                                     <a href="#" @click.stop="editModal(visit)" class="font-medium text-blue-600 hover:underline">Edit</a> /
-                                    <a href="#" @click.stop="getId(visit), console.log(currentId.valueOf);" class="font-medium text-red-600 hover:underline">Delete</a>
+                                    <a href="#" @click.stop="getId(visit),console.log(currentId.valueOf)" class="font-medium text-red-600 hover:underline">Delete</a>
                                 </td>
                             </tr>
 

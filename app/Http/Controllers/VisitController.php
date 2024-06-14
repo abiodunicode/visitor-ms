@@ -23,21 +23,14 @@ class VisitController extends Controller
 //       ;
         $this->visit = $visit;
     }
-    // public function index():Response
-    // {
-    //     //
-    //     $visits = Visit::all();
-    //     return Inertia::render('Visits', [
-    //         'visits' => $visits,
-    //     ]);
-    // }
+ 
     public function index(): Response
     {
         $visits = Visit::with(['visitor', 'host'])->get();
 
         $visitsData = $visits->map(function ($visit) {
             return [
-                'visit_id' => $visit->id,
+                'visit_id' => $visit->visit_id,
                 'date' => $visit->date,
                 'check_in_time' => $visit->check_in_time,
                 'check_out_time' => $visit->check_out_time,
@@ -64,20 +57,14 @@ class VisitController extends Controller
     public function create(Request  $request)
     {
 
-//        $visitor = User::create($request->validated());
-//        return response()->json($visitor, 201);
-//        return Inertia::render('Dashboard');
-//        return Redirect::to('/dashboard');
+
     }
 
     /**
      * Store a newly created resource in storage.
      */
     // public function store(Request $request)
-    // {
-    //     //
-    //     $visitor = Visit::create($request->all());
-    // }
+
 
 
     public function store(Request $request)
@@ -141,30 +128,6 @@ class VisitController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    // public function update(Request $request, $id)
-    // {
-    //     $visitor = Visitor::findOrFail($id);
-
-    //     // Validate the request
-    //     $request->validate([
-    //         'full_name' => ['required', 'string', 'max:255'],
-    //         'phone_number' => ['required', 'string', 'max:255'],
-    //         'company' => ['required', 'string', 'max:255'],
-    //         'email' => [
-    //             'required',
-    //             'string',
-    //             'email',
-    //             'max:255',
-    //             'unique:visitors,email,' . $id
-    //         ],
-    //     ]);
-
-    //   //  Update the visitor
-    //     $visitor->fill($request->all());
-    //     $visitor->save();
-
-    //     return redirect()->back()->with('success', 'Visitor has been updated successfully.');
-    // }
 
     public function update(Request $request, $visit_id)
     {
@@ -213,6 +176,8 @@ class VisitController extends Controller
 // //    public function destroy(string $id)
     public function destroy(Visit $visit)
     {
+
+        
     
         
         $visit->delete();

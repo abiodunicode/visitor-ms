@@ -46,6 +46,6 @@ Route::post('hosts', [HostController::class, 'store'])->name('hosts.store');
 
 Route::resource('visits',VisitController::class)->middleware('auth');
 
-Route::post('visits', [VisitController::class, 'store'])->name('visits.store');
+//Route::post('visits', [VisitController::class, 'store'])->name('visits.store');
 
 require __DIR__.'/auth.php';
