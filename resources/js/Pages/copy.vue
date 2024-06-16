@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref,onMounted } from 'vue';
+import { ref } from 'vue';
 import TextInputx from '@/Components/TextInputx.vue';
 import InputLabelx from '@/Components/InputLabelx.vue';
 import PrimaryButtonx from '@/Components/PrimaryButtonx.vue';
@@ -11,48 +11,31 @@ import axios from 'axios';
 // Props
 const props = defineProps({
     visits: Array<Data>,
-    // visitorNames: Array<{ id: number, full_name: string }>
-    visitorNames: {
-        type: Array as () => Array<Visitor>,
-        default: () => []
-    },
-    hostNames: {
-        type: Array as () => Array<Host>,
-        default: () => []
-    }
 });
-
 
 // Delete confirmation modal
 const deleteConfirmationMessage = ref("Are you sure you want to delete this Host?");
 const deleteConfirmButtonText = ref("Yes, I'm sure");
 const deleteCancelButtonText = ref("No, cancel");
 
-const suggestions = ref<Array<{ id: number, full_name: string }>>([]);
-
-const hosts = ref<Array<{ host_id: number, host_name: string }>>([]);
-const showSuggestions = ref(false);
+const searchQuery = ref("");
+const suggestions = ref<Visitor[]>([]);
+        const showSuggestions = ref(false);
 
 const showModal = ref<boolean>(false);
 const editMode = ref<boolean>(false);
 const deleteModal = ref<boolean>(false);
 const currentId = ref<string>('');
 
-interface Visitor {
-    id: number;
-    full_name: string;
-}
-
-interface Host {
-    host_id: number;
-    host_name: string;
-}
-
 interface Data {
     visit_id:number;
     visitor_name: string;
+    visitor_email: string;
+    visitor_company: string;
     host_name: string;
-   
+    host_position: string;
+    host_department: string;
+    date:string;
     check_in_time: string;
     check_out_time: string;
     purpose:string;
@@ -60,9 +43,13 @@ interface Data {
 }
 const form = useForm<Data>({
     visit_id:0,
-    visitor_name: '',   
+    visitor_name: '',
+    visitor_email: '',
+    visitor_company: '',
     host_name:'',
-  
+    host_position: '',
+    host_department: '',
+    date: '',
     check_in_time: '',
     check_out_time: '',
     purpose: '',
@@ -72,57 +59,39 @@ const form = useForm<Data>({
 
 //***************************
 
+type Visitor = {
+            id: number;
+            name: string;
+        };
+
+const visitors = ref<Visitor[]>([
+            { id: 1, name: "John Doe" },
+            { id: 2, name: "Jane Smith" },
+            { id: 3, name: "Alice Johnson" },
+            { id: 4, name: "Bob Brown" },
+            { id: 5, name: "Bobby Brown" },
+            { id: 6, name: "Bobbl Brown" },
+            { id: 7, name: "Alide Johnson" },
+            // Add more visitor objects as needed
+        ]);
 
 
+        const searchVisitors = () => {
+            const query = form.visitor_name.toLowerCase();
+            if (query.length > 2) {
+                suggestions.value = visitors.value.filter(visitor => 
+                    visitor.name.toLowerCase().includes(query)
+                );
+                showSuggestions.value = suggestions.value.length > 0;
+            } else {
+                showSuggestions.value = false;
+            }
+        };
 
-
-const searchVisitors = () => {
-    const query = form.visitor_name.toLowerCase();
-    if (query.length > 0) {
-        suggestions.value = props.visitorNames.filter(visitor => 
-            visitor.full_name.toLowerCase().includes(query)
-        );
-        showSuggestions.value = suggestions.value.length > 0;
-    } else {
-        showSuggestions.value = false;
-    }
-    console.log(suggestions.value);
-};
-
-const searchHosts = () => {
-    const query = form.host_name.toLowerCase();
-    if (query.length > 0) {
-        hosts.value = props.hostNames.filter(host => 
-            host.host_name.toLowerCase().includes(query)
-        );
-        showSuggestions.value = hosts.value.length > 0;
-    } else {
-        showSuggestions.value = false;
-    }
-    console.log(suggestions.value);
-};
-
-const selectSuggestion = (suggestion: { id: number, full_name: string }) => {
-    form.visitor_name = suggestion.full_name;
-    showSuggestions.value = false;
-};
-
-
-
-
-
-
-const selectHost = (hosts: { host_id: number, host_name: string }) => {
-    form.visitor_name = hosts.host_name;
-    showSuggestions.value = false;
-};
-
-
-const showMe = () => {
-    console.log('showMe');
-};
-
-
+        const selectSuggestion = (suggestion: Visitor) => {
+            form.visitor_name = suggestion.name;
+            showSuggestions.value = false;
+        };
 
 //******************************************************
 
@@ -153,8 +122,9 @@ const submit = () => {
     });
 };
 
-
+console.log(form.visit_id)
 const updateData = () => {
+    console.log(form.visit_id)
     form.patch(route('visits.update', { visit:form.visit_id }), {
         onFinish: () => {
             form.reset();
@@ -170,7 +140,12 @@ const editModal = (visit:Data) => {
 
     form.visit_id = visit.visit_id;
     form.visitor_name = visit.visitor_name;
+    form.visitor_email = visit.visitor_email;
+    form.visitor_company = visit.visitor_company;
     form.host_name = visit.host_name;
+    form.host_position = visit.host_position;
+    form.host_department = visit.host_department;
+    form.date = visit.date;
     form.check_in_time = visit.check_in_time;
     form.check_out_time = visit.check_out_time;
     form.purpose = visit.purpose;
@@ -181,8 +156,12 @@ const editModal = (visit:Data) => {
 };
 
 const formreset = () => {
-    form.visitor_name   = '';  
+    form.visitor_name   = ''; 
+    form.visitor_email   = '';
+    form.visitor_company   = ''; 
     form.host_name   = '';
+    form.host_department   = '';
+    form.date   = ''; 
     form.check_in_time   = ''; 
     form.check_out_time   = '';
     form.purpose   = '';
@@ -245,42 +224,104 @@ const closeModal = () => {
                                                                 id="visitor_name"
                                                                 type="text"
                                                                 v-model="form.visitor_name"
-                                                                @input="searchVisitors()"
+                                                                @input=" searchVisitors()"
                                                                 required
                                                                 autocomplete="off"
                                                             />
                                                             <div v-if="showSuggestions && suggestions.length" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg">
                                                                 <ul>
-                                                                    <li v-for="suggestion in suggestions" :key="suggestion.id"   class="px-4 py-2 cursor-pointer hover:bg-gray-200" @click="selectSuggestion(suggestion)">
-                                                                        {{ suggestion.full_name }}
+                                                                    <li v-for="suggestion in suggestions" :key="suggestion.id" class="px-4 py-2 cursor-pointer hover:bg-gray-200" @click="selectSuggestion(suggestion)">
+                                                                        {{ suggestion.name }}
                                                                     </li>
                                                                 </ul>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                        <div class="mb-5">
-                                                        <InputLabelx for="host_name" value="Staff Name" />
-                                                        <div class="relative">
-                                                            <TextInputx
-                                                                id="host_name"
-                                                                type="text"
-                                                                v-model="form.host_name"
-                                                                @input="searchHosts()"
-                                                                required
-                                                                autocomplete="off"
-                                                            />
-                                                            <div v-if="showSuggestions && hosts.length" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg">
-                                                                <ul>
-                                                                    <li v-for="host in hosts" :key="host.host_id"   class="px-4 py-2 cursor-pointer hover:bg-gray-200" @click="selectHost(host)">
-                                                                        {{ host.host_name }}
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </div>
+                                                    <!-- <div class="mb-5">
+                                                        <InputLabelx for="name" value="Visitor Name" />
+                                                        <TextInputx
+                                                            id="visitor_name"
+                                                            type="text"
+                                                            v-model="form.visitor_name"
+                                                            required
+                                                            autofocus
+                                                            placeholder="Omoboriola Chukwudi Danjuma"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div> -->
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="name" value="Visitor Email" />
+                                                        <TextInputx
+                                                            id="visitor_email"
+                                                            type="text"
+                                                            v-model="form.visitor_email"
+                                                            required
+                                                            autofocus
+                                                            placeholder="Omoboriola Chukwudi Danjuma"
+                                                            autocomplete="off"
+                                                        />
                                                     </div>
-                                                 
-                                                   
-                                               
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="name" value="Visitor Company" />
+                                                        <TextInputx
+                                                            id="visitor_company"
+                                                            type="text"
+                                                            v-model="form.visitor_company"
+                                                            required
+                                                            autofocus
+                                                            placeholder="Omoboriola Chukwudi Danjuma"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
+                                                
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="host_name" value="host_name" />
+                                                        <TextInputx
+                                                            id="host_name"
+                                                            type="text"
+                                                            v-model="form.host_name"
+                                                            required
+                                                            autofocus
+                                                            placeholder="Manager"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="name" value="Host Position" />
+                                                        <TextInputx
+                                                            id="host_position"
+                                                            type="text"
+                                                            v-model="form.host_position"
+                                                            required
+                                                            autofocus
+                                                            placeholder="Manager"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="name" value=" Host Department" />
+                                                        <TextInputx
+                                                            id="host_department"
+                                                            type="text"
+                                                            v-model="form.host_department"
+                                                            required
+                                                            autofocus
+                                                            placeholder="Sales"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
+                                                    <div class="mb-5">
+                                                        <InputLabelx for="name" value="date" />
+                                                        <TextInputx
+                                                            id="date"
+                                                            type="date"
+                                                            v-model="form.date"
+                                                            required
+                                                            autofocus
+                                                            placeholder="Sales"
+                                                            autocomplete="off"
+                                                        />
+                                                    </div>
                                                     <div class="mb-5">
                                                         <InputLabelx for="name" value="check_in_time" />
                                                         <TextInputx
@@ -361,18 +402,31 @@ const closeModal = () => {
                             <tr>
                                 <th scope="col" class="p-4">
                                     <div class="flex items-center">
-                                   
-                                        <!-- <input id="checkbox-all-search" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                                        <label for="checkbox-all-search" class="sr-only">checkbox</label> -->
+                                        <input id="checkbox-all-search" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                                        <label for="checkbox-all-search" class="sr-only">checkbox</label>
                                     </div>
                                 </th>
                                 <th scope="col" class="px-6 py-3">
                                     Visitor Name
                                 </th>
                                 <th scope="col" class="px-6 py-3">
-                                   Staff Name
+                                    Visitor Email
                                 </th>
-                               
+                                <th scope="col" class="px-6 py-3">
+                                    Visitor Company
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                   Host Name
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                 Host Department
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                   Host Position
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    date
+                                </th>
                                 <th scope="col" class="px-6 py-3">
                                     Check In At
                                 </th>
@@ -391,22 +445,36 @@ const closeModal = () => {
                             </tr>
                             </thead>
                             <tbody>
-                            <tr v-for="visit in visits"  :key="visit.visit_id" class="bg-white border-b hover:bg-gray-50">
+                            <tr v-for="visit in visits" :key="visit.visit_id" class="bg-white border-b hover:bg-gray-50">
                                 <td class="w-4 p-4">
                                     <div class="flex items-center">
-                                        <PrimaryButtonx @click="showMe()" class="text-center" >
-                                            More
-                                        </PrimaryButtonx>
+                                        <input id="checkbox-table-search-1" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                                        <label for="checkbox-table-search-1" class="sr-only">checkbox</label>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
                                     {{ visit.visitor_name }}
                                 </td>
-                           
+                                <td class="px-6 py-4">
+                                    {{ visit.visitor_email }}
+                                </td>
+                                
+                                <td class="px-6 py-4">
+                                    {{ visit.visitor_company }}
+                                </td>
                                 <td class="px-6 py-4">
                                     {{ visit.host_name }}
                                 </td>
-                            
+                                <td class="px-6 py-4">
+                                    {{ visit.host_department }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ visit.host_position }}
+                                </td>
+                               
+                                <td class="px-6 py-4">
+                                    {{ visit.date }}
+                                </td>
                                 <td class="px-6 py-4">
                                     {{ visit.check_in_time }}
                                 </td>

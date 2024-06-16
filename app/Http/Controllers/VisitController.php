@@ -23,7 +23,7 @@ class VisitController extends Controller
 //       ;
         $this->visit = $visit;
     }
- 
+
     public function index(): Response
     {
         $visits = Visit::with(['visitor', 'host'])->get();
@@ -31,24 +31,51 @@ class VisitController extends Controller
         $visitsData = $visits->map(function ($visit) {
             return [
                 'visit_id' => $visit->visit_id,
-                'date' => $visit->date,
                 'check_in_time' => $visit->check_in_time,
                 'check_out_time' => $visit->check_out_time,
                 'purpose' => $visit->purpose,
                 'status' => $visit->status,
                 'visitor_name' => $visit->visitor->full_name,
-                'visitor_email' => $visit->visitor->email,
-                'visitor_company' => $visit->visitor->company,
                 'host_name' => $visit->host->host_name,
-                'host_department' => $visit->host->host_department,
-                'host_position' => $visit->host->host_position,
             ];
         });
 
+         // Collect all visitor names for suggestions
+         $visitorNames = Visitor::select('id', 'full_name')->get();
+         $hostNames = Host::select('host_id', 'host_name')->get();
+
         return Inertia::render('Visits', [
             'visits' => $visitsData,
+            'visitorNames' => $visitorNames,
+             'hostNames'  => $hostNames,
         ]);
     }
+ 
+    // public function index(): Response
+    // {
+    //     $visits = Visit::with(['visitor', 'host'])->get();
+
+    //     $visitsData = $visits->map(function ($visit) {
+    //         return [
+    //             'visit_id' => $visit->visit_id,
+    //             'date' => $visit->date,
+    //             'check_in_time' => $visit->check_in_time,
+    //             'check_out_time' => $visit->check_out_time,
+    //             'purpose' => $visit->purpose,
+    //             'status' => $visit->status,
+    //             'visitor_name' => $visit->visitor->full_name,
+    //             'visitor_email' => $visit->visitor->email,
+    //             'visitor_company' => $visit->visitor->company,
+    //             'host_name' => $visit->host->host_name,
+    //             'host_department' => $visit->host->host_department,
+    //             'host_position' => $visit->host->host_position,
+    //         ];
+    //     });
+
+    //     return Inertia::render('Visits', [
+    //         'visits' => $visitsData,
+    //     ]);
+    // }
 
 
     /**
@@ -72,12 +99,12 @@ class VisitController extends Controller
     // Validate the request data
     $request->validate([
         'visitor_name' => 'required|string|max:255',
-        'visitor_email' => 'required|string|email|max:255',
-        'visitor_company' => 'required|string|max:255',
+       
+        
         'host_name' => 'required|string|max:255',
-        'host_department' => 'required|string|max:255',
-        'host_position' => 'required|string|max:255',
-        'date' => 'required|date',
+        
+       
+      
         'check_in_time' => 'required',
         'check_out_time' => 'required',
         'purpose' => 'required|string|max:255',
@@ -86,21 +113,16 @@ class VisitController extends Controller
 
     // Fetch visitor_id from the visitors table
     $visitor = Visitor::where('full_name', $request->visitor_name)
-        ->where('email', $request->visitor_email)
-        ->where('company', $request->visitor_company)
         ->firstOrFail();
 
     // Fetch host_id from the hosts table
     $host = Host::where('host_name', $request->host_name)
-        ->where('host_department', $request->host_department)
-        ->where('host_position', $request->host_position)
         ->firstOrFail();
 
     // Create the visit with the fetched ids
     $visit = Visit::create([
         'visitor_id' => $visitor->id,
         'host_id' => $host->host_id,
-        'date' => $request->date,
         'check_in_time' => $request->check_in_time,
         'check_out_time' => $request->check_out_time,
         'purpose' => $request->purpose,
@@ -114,7 +136,11 @@ class VisitController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $visitors = Visitor::all(); // Adjust according to your actual data fetching logic
+
+        return response()->json([
+            'visitors' => $visitors
+        ]);
     }
 
     /**
@@ -122,8 +148,19 @@ class VisitController extends Controller
      */
     public function edit(string $id)
     {
-        //
+     
     }
+
+    //*
+
+//     public function search(Request $request)
+// {
+//     $query = $request->input('query');
+//     $visitors = Visitor::where('name', 'LIKE', "%{$query}%")->get(['id', 'full_name']); // Adjust the fields as needed
+//     return response()->json($visitors);
+// }
+
+
 
     /**
      * Update the specified resource in storage.
@@ -135,12 +172,8 @@ class VisitController extends Controller
 
         $request->validate([
             'visitor_name' => 'required|string|max:255',
-            'visitor_email' => 'required|string|email|max:255',
-            'visitor_company' => 'required|string|max:255',
             'host_name' => 'required|string|max:255',
-            'host_department' => 'required|string|max:255',
-            'host_position' => 'required|string|max:255',
-            'date' => 'required|date',
+        
             'check_in_time' => 'required',
             'check_out_time' => 'required',
             'purpose' => 'required|string|max:255',
@@ -149,14 +182,10 @@ class VisitController extends Controller
     
         // Fetch visitor_id from the visitors table
         $visitor = Visitor::where('full_name', $request->visitor_name)
-            ->where('email', $request->visitor_email)
-            ->where('company', $request->visitor_company)
             ->firstOrFail();
     
         // Fetch host_id from the hosts table
         $host = Host::where('host_name', $request->host_name)
-            ->where('host_department', $request->host_department)
-            ->where('host_position', $request->host_position)
             ->firstOrFail();
 
       

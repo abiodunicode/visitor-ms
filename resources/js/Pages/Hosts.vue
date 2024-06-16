@@ -115,37 +115,37 @@ const closeModal = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Dashboard</h2>
+            <h2 class="text-xl font-semibold leading-tight text-gray-800">Dashboard</h2>
         </template>
 
         <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-                        <div class="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 pb-4 bg-white">
-                            <div class="ml-5 mt-4">
-                                <button @click="newModal" data-modal-target="static-modal" data-modal-toggle="static-modal" class="pl-4 px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300" type="button">
+                        <div class="flex flex-wrap items-center justify-between pb-4 space-y-4 bg-white flex-column md:flex-row md:space-y-0">
+                            <div class="mt-4 ml-5">
+                                <button @click="newModal" data-modal-target="static-modal" data-modal-toggle="static-modal" class="inline-flex items-center px-3 py-2 pl-4 text-xs font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300" type="button">
                                     <div class="pr-1">Add</div>
-                                    <svg class="w-3 h-3 text-white mb-1 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 16">
+                                    <svg class="w-3 h-3 mb-1 text-white me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 16">
                                         <path d="M11 11V5H13V11H19V13H13V19H11V13H5V11H11Z"></path>
                                     </svg>
                                 </button>
 
                                 <div v-show="showModal" class="fixed inset-0 bg-black bg-opacity-50"></div>
                                 <div :class="{ 'hidden': !showModal }" id="static-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="flex overflow-y-auto overflow-x-hidden fixed top-1/2 right-1/2 left-1/2 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-                                    <div class="relative p-4 w-full max-w-2xl max-h-full">
+                                    <div class="relative w-full max-w-2xl max-h-full p-4">
                                         <div class="relative bg-white rounded-lg shadow">
-                                            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                                            <div class="flex items-center justify-between p-4 border-b rounded-t md:p-5">
                                                 <h3 class="text-xl font-semibold text-gray-900" v-if="!editMode">Add Host</h3>
                                                 <h3 class="text-xl font-semibold text-gray-900" v-if="editMode">Edit Host</h3>
-                                                <button @click="closeModal" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="static-modal">
+                                                <button @click="closeModal" type="button" class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto" data-modal-hide="static-modal">
                                                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                                                     </svg>
                                                     <span class="sr-only">Close modal</span>
                                                 </button>
                                             </div>
-                                            <div class="p-4 md:p-5 space-y-4">
+                                            <div class="p-4 space-y-4 md:p-5">
                                                 <form class="max-w-sm mx-auto">
                                                     <div class="mb-5">
                                                         <InputLabelx for="name" value="Full Name" />
@@ -209,7 +209,7 @@ const closeModal = () => {
                                                     </div>
                                                 </form>
                                             </div>
-                                            <div class="flex justify-center items-center p-4 md:p-5 border-t border-gray-200 rounded-b">
+                                            <div class="flex items-center justify-center p-4 border-t border-gray-200 rounded-b md:p-5">
                                                 <PrimaryButtonx @click="submit" v-if="!editMode" class="text-center" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
                                                     Create
                                                 </PrimaryButtonx>
@@ -234,13 +234,13 @@ const closeModal = () => {
                                 </div>                            </div>
                         </div>
 
-                        <table class="w-full text-sm text-left rtl:text-right text-gray-500">
+                        <table class="w-full text-sm text-left text-gray-500 rtl:text-right">
                             <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                             <tr>
                                 <th scope="col" class="p-4">
                                     <div class="flex items-center">
-                                        <input id="checkbox-all-search" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                                        <label for="checkbox-all-search" class="sr-only">checkbox</label>
+                                        <!-- <input id="checkbox-all-search" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                                        <label for="checkbox-all-search" class="sr-only">checkbox</label> -->
                                     </div>
                                 </th>
                                 <th scope="col" class="px-6 py-3">
