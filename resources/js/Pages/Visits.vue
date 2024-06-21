@@ -7,11 +7,15 @@ import InputLabelx from '@/Components/InputLabelx.vue';
 import PrimaryButtonx from '@/Components/PrimaryButtonx.vue';
 import DeleteConfirmationModal from '@/Components/DeleteConfirmatiomModal.vue'
 import axios from 'axios';
+import Hosts from './Hosts.vue';
+
+
+
 
 // Props
 const props = defineProps({
     visits: Array<Data>,
-    // visitorNames: Array<{ id: number, full_name: string }>
+   
     visitorNames: {
         type: Array as () => Array<Visitor>,
         default: () => []
@@ -19,7 +23,16 @@ const props = defineProps({
     hostNames: {
         type: Array as () => Array<Host>,
         default: () => []
-    }
+    },
+
+    allVisitors: {
+        type: Array as () => Array<Visitor>,
+        default: () => [],
+    },
+    allHosts: {
+        type: Array as () => Array<Host>,
+        default: () => [],
+    },
 });
 
 
@@ -28,37 +41,67 @@ const deleteConfirmationMessage = ref("Are you sure you want to delete this Host
 const deleteConfirmButtonText = ref("Yes, I'm sure");
 const deleteCancelButtonText = ref("No, cancel");
 
+
+
+const selectedVisitor = ref<Visitor | null>(null);
+const selectedHost = ref<Host | null>(null);
+    const selectedVisits = ref<Data | null>(null);
+const showDetails = ref(false);
+
+
+
 const suggestions = ref<Array<{ id: number, full_name: string }>>([]);
 
 const hosts = ref<Array<{ host_id: number, host_name: string }>>([]);
 const showSuggestions = ref(false);
+const showHosts = ref(false);
 
 const showModal = ref<boolean>(false);
 const editMode = ref<boolean>(false);
 const deleteModal = ref<boolean>(false);
 const currentId = ref<string>('');
 
-interface Visitor {
-    id: number;
-    full_name: string;
+interface Host {
+    host_id: number,
+    host_name: string;
+    host_email: string;
+    host_phone: string;
+    host_position: string;
+    host_department: string;
 }
 
-interface Host {
-    host_id: number;
-    host_name: string;
+interface Visitor {
+    id: number,
+    full_name: string;
+    email: string;
+    company: string;
+    phone_number: string;
 }
+
+// interface Host {
+//     host_id: number;
+//     host_name: string;
+// }
 
 interface Data {
-    visit_id:number;
+    visit_id: number;
+  
     visitor_name: string;
-    host_name: string;
    
+    host_name: string;
     check_in_time: string;
     check_out_time: string;
-    purpose:string;
-    status:string;
+    purpose: string;
+    status: string;
+    // visitor: Visitor,
+    // host: Host,
 }
 const form = useForm<Data>({
+    // visitor: {
+    //     id: 0,
+    //     full_name: '',
+    // },
+    // host: { host_id: 0, host_name: '' },
     visit_id:0,
     visitor_name: '',   
     host_name:'',
@@ -77,6 +120,8 @@ const form = useForm<Data>({
 
 
 const searchVisitors = () => {
+
+    
     const query = form.visitor_name.toLowerCase();
     if (query.length > 0) {
         suggestions.value = props.visitorNames.filter(visitor => 
@@ -95,11 +140,11 @@ const searchHosts = () => {
         hosts.value = props.hostNames.filter(host => 
             host.host_name.toLowerCase().includes(query)
         );
-        showSuggestions.value = hosts.value.length > 0;
+        showHosts.value = hosts.value.length > 0;
     } else {
-        showSuggestions.value = false;
+        showHosts.value = false;
     }
-    console.log(suggestions.value);
+    console.log(hosts.value);
 };
 
 const selectSuggestion = (suggestion: { id: number, full_name: string }) => {
@@ -107,20 +152,25 @@ const selectSuggestion = (suggestion: { id: number, full_name: string }) => {
     showSuggestions.value = false;
 };
 
-
-
-
-
-
 const selectHost = (hosts: { host_id: number, host_name: string }) => {
-    form.visitor_name = hosts.host_name;
-    showSuggestions.value = false;
+    form.host_name = hosts.host_name;
+    showHosts.value = false;
+};
+
+const showMe = ( visit: Data ) => {
+selectedVisitor.value = props.allVisitors.find(v => v.full_name === visit.visitor_name) || null ;
+    selectedHost.value = props.allHosts.find(h => h.host_name === visit.host_name) || null;
+    showDetails.value = true;
 };
 
 
-const showMe = () => {
-    console.log('showMe');
+
+
+const hideDetais = () => {
+showDetails.value = false;
+    console.log('hideDetais');
 };
+
 
 
 
@@ -199,6 +249,10 @@ const closeModal = () => {
     showModal.value = false;
     editMode.value = false;
 };
+
+function id(value: Visitor, index: number, obj: Visitor[]): unknown {
+    throw new Error('Function not implemented.');
+}
 </script>
 
 <template>
@@ -213,6 +267,8 @@ const closeModal = () => {
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+                      
+                      
                         <div class="flex flex-wrap items-center justify-between pb-4 space-y-4 bg-white flex-column md:flex-row md:space-y-0">
                             <div class="mt-4 ml-5">
                                 <button @click="newModal" data-modal-target="static-modal" data-modal-toggle="static-modal" class="inline-flex items-center px-3 py-2 pl-4 text-xs font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300" type="button">
@@ -269,7 +325,7 @@ const closeModal = () => {
                                                                 required
                                                                 autocomplete="off"
                                                             />
-                                                            <div v-if="showSuggestions && hosts.length" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg">
+                                                            <div v-if="showHosts && hosts.length" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg">
                                                                 <ul>
                                                                     <li v-for="host in hosts" :key="host.host_id"   class="px-4 py-2 cursor-pointer hover:bg-gray-200" @click="selectHost(host)">
                                                                         {{ host.host_name }}
@@ -358,12 +414,11 @@ const closeModal = () => {
 
                         <table class="w-full text-sm text-left text-gray-500 rtl:text-right">
                             <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                            <tr>
+                            <tr >
                                 <th scope="col" class="p-4">
                                     <div class="flex items-center">
                                    
-                                        <!-- <input id="checkbox-all-search" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                                        <label for="checkbox-all-search" class="sr-only">checkbox</label> -->
+                                     
                                     </div>
                                 </th>
                                 <th scope="col" class="px-6 py-3">
@@ -391,12 +446,16 @@ const closeModal = () => {
                             </tr>
                             </thead>
                             <tbody>
-                            <tr v-for="visit in visits"  :key="visit.visit_id" class="bg-white border-b hover:bg-gray-50">
+                            <tr v-for="visit in visits"  :key="visit.visit_id" class="bg-white border-b hover:bg-gray-50" @click=showMe(visit) >
+                               
+                             
+                                  
+                                   
+                                 
+                                
                                 <td class="w-4 p-4">
                                     <div class="flex items-center">
-                                        <PrimaryButtonx @click="showMe()" class="text-center" >
-                                            More
-                                        </PrimaryButtonx>
+                                      
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
@@ -427,9 +486,62 @@ const closeModal = () => {
 
                             </tbody>
                         </table>
+
+                          <div v-show="showDetails"  class="fixed inset-0 bg-black bg-opacity-50"></div>
+                        <div :class="{ 'hidden': !showDetails }" class="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full flex" aria-modal="true" role="dialog">
+                        <div class="relative w-full max-w-md max-h-full p-4">
+                            <div class="relative bg-white rounded-lg shadow">
+                                <button @click="hideDetais" type="button" class="absolute inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg top-1 right-1 hover:bg-gray-200 hover:text-gray-900 ms-auto dark:hover:bg-gray-600 dark:hover:text-white">
+                                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                                    </svg>
+                                    <span class="sr-only">Close modal</span>
+                                </button>
+
+                                     <table class="w-full text-sm text-left rounded gray-500 rtl:text-right">
+                                        <thead class="text-xs text-gray-700 uppercase bg-gray-50" >
+                                        <tr class="divide-x divide-slate-700">
+                                           
+                                            <th scope="col" class="px-6 py-3 ">
+                                                Visitor details
+                                            </th>
+                                            <th scope="col" class="px-6 py-3">
+                                               Staff Details
+                                            </th>
+                                           
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-if="showDetails" class="bg-white border-b divide-x divide-slate-700 hover:bg-gray-50">
+                                               
+                                                <td class="px-6 py-4 ">
+                                                <div><span >Visitor Name:</span>   {{ selectedVisitor?.full_name }}</div> 
+                                                <div><span >Visitor Email:</span>   {{ selectedVisitor?.email }}</div> 
+                                                <div><span >Visitor Company:</span>   {{ selectedVisitor?.company }}</div>
+                                                 <div><span >Visitor Phone:</span>   {{ selectedVisitor?.phone_number }}</div>
+                                                </td>
+                                                <td class="px-6 py-4 ">
+                                                     <div><span>Host Name:</span>  {{ selectedHost?.host_name}}</div>    
+                                                      <div><span>Host Email:</span>  {{ selectedHost?.host_email}}</div>   
+                                                      <div><span>Host Phone:</span>  {{ selectedHost?.host_phone}}</div> 
+                                                      <div><span>Host Position:</span>  {{ selectedHost?.host_position}}</div>                                      
+                                                      <div><span>Host Department:</span>  {{ selectedHost?.host_department}}</div> 
+                                                 </td>
+                                            </tr>
+                                           
+                                        </tbody>
+
+                                        
+                                    </table>
+                                <!-- </div> -->
+                            </div>
+                        </div>
+                    </div>
                     </div>
                 </div>
             </div>
         </div>
     </AuthenticatedLayout>
+
+  
 </template>

@@ -44,10 +44,15 @@ class VisitController extends Controller
          $visitorNames = Visitor::select('id', 'full_name')->get();
          $hostNames = Host::select('host_id', 'host_name')->get();
 
+         $allVisitors = Visitor::all();
+         $allHosts = Host::all();
+
         return Inertia::render('Visits', [
             'visits' => $visitsData,
             'visitorNames' => $visitorNames,
              'hostNames'  => $hostNames,
+             'allHosts' => $allHosts,
+             'allVisitors' => $allVisitors
         ]);
     }
  
