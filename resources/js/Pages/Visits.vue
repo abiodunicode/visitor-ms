@@ -52,7 +52,7 @@ const selectedVisits = ref<Data | null>(null);
 const showDetails = ref(false);
 
 const currentPage = ref(1);
-const pageSize = ref(2);
+const pageSize = ref(10);
 
 
 

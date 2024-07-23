@@ -23,7 +23,7 @@ const deleteCancelButtonText = ref("No, cancel");
 
 const filteredVisitors = ref([...props.visitors]);
 const currentPage = ref(1);
-const pageSize = ref(2);
+const pageSize = ref(10);
 
 
 const showModal = ref<boolean>(false);

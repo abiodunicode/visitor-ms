@@ -21,7 +21,7 @@ const deleteConfirmButtonText = ref("Yes, I'm sure");
 const deleteCancelButtonText = ref("No, cancel");
 const filteredHosts = ref([...props.hosts]) ;
 const currentPage = ref(1);
-const pageSize = ref(2);
+const pageSize = ref(10);
 
 const showModal = ref<boolean>(false);
 const editMode = ref<boolean>(false);
