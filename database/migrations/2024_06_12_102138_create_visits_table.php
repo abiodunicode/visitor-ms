@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('host_id')->constrained('users')->onDelete('cascade');
             $table->text('purpose')->nullable();
             $table->string('status');
+            $table->integer('duration')->nullable();
             $table->timestamps();
         });
     }

@@ -59,7 +59,6 @@ const pageSize = ref(10);
 const suggestions = ref<Array<{ id: number, full_name: string }>>([]);
 const filteredVisits = ref([...props.visits]);
 
-console.log(filteredVisits.value.length)
 
 const hosts = ref<Array<{ host_id: number, host_name: string }>>([]);
 const showSuggestions = ref(false);
@@ -98,6 +97,7 @@ interface Data {
     searchQuery: string;
     check_in_time: string;
 check_out_time: string;
+duration: number;
 }
 const form = useForm<Data>({
     visit_id: 0,
@@ -107,7 +107,8 @@ const form = useForm<Data>({
     status: '',
     searchQuery: '',
     check_in_time: '',
-    check_out_time:''
+    check_out_time:'',
+    duration : 0,
 });
 
 
@@ -215,8 +216,6 @@ const editModal = (visit: Data) => {
     form.host_name = visit.host_name;
     form.purpose = visit.purpose;
     form.status = visit.status;
-
-
     showModal.value = true;
 };
 
@@ -284,9 +283,47 @@ const paginatedVisits = computed(() => {
     watch(() => props.visits, (newVisits) => {
       searchVisits();
     });
+  
+
+    const calculateDurationInMinutes = (checkInTime: string | number | Date, checkOutTime: string | number | Date) => {
+  const checkInDate = new Date(checkInTime);
+  const checkOutDate = new Date(checkOutTime);
+
+  const checkInTimeMs = checkInDate.getTime();
+  const checkOutTimeMs = checkOutDate.getTime();
+
+  const diffTime = Math.abs(checkOutTimeMs - checkInTimeMs);
+  const diffMinutes = Math.ceil(diffTime / (1000 * 60));
+
+  return diffMinutes;
+};
 
 
+// const checkout = (visit :Data) => {
+  
+// visit.status = 'completed'
+  
 
+//     }
+
+const checkout = (visit: Data, form: any) => {
+  // Update the status to 'completed'
+  visit.check_out_time = currentTime;
+  const durationInMinutes = calculateDurationInMinutes(visit.check_in_time, visit.check_out_time);
+
+
+  visit.status = 'completed';
+  visit.duration = durationInMinutes
+  form.duration = visit.duration
+  form.status = visit.status
+
+  // Send the updated status to the server
+  form.patch(route('visits.checkout', { visit: visit.visit_id }), {
+    status: visit.status,
+    duration: visit.duration
+  });
+  console.log(form.duration)
+};
 
 function id(value: Visitor, index: number, obj: Visitor[]): unknown {
     throw new Error('Function not implemented.');
@@ -466,6 +503,9 @@ function id(value: Visitor, index: number, obj: Visitor[]): unknown {
                                         Status
                                     </th>
                                     <th scope="col" class="px-6 py-3">
+                                        Visit Duration (minutes)
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
                                         Action
                                     </th>
                                 </tr>
@@ -501,9 +541,14 @@ function id(value: Visitor, index: number, obj: Visitor[]): unknown {
                                         {{ visit.status }}
                                     </td>
                                     <td class="px-6 py-4">
+                                        {{ visit.duration }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <a href="#" @click.stop="checkout(visit,form)"
+                                        class="font-medium text-green-600 hover:underline">checkout</a> /
                                         <a href="#" @click.stop="editModal(visit)"
                                             class="font-medium text-blue-600 hover:underline">Edit</a> /
-                                        <a href="#" @click.stop="getId(visit), console.log(currentId.valueOf)"
+                                        <a href="#" @click.stop="getId(visit),console.log(currentId)"
                                             class="font-medium text-red-600 hover:underline">Delete</a>
                                     </td>
                                 </tr>

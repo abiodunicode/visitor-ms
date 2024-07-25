@@ -39,6 +39,7 @@ class VisitController extends Controller
                 'check_out_time' => $visit->updated_at,
                 'visitor_name' => $visit->visitor->full_name,
                 'host_name' => $visit->host->host_name,
+                'duration' => $visit->duration
             ];
         });
 
@@ -86,6 +87,8 @@ class VisitController extends Controller
         'host_name' => 'required|string|max:255',
         'purpose' => 'required|string|max:255',
         'status' => 'required|string|max:255',
+        'duration' => 'required',
+
     ]);
 
  
@@ -102,13 +105,15 @@ class VisitController extends Controller
         'visitor_id' => $visitor->id,
         'host_id' => $host->host_id,
         'purpose' => $request->purpose,
-        'status' => $request->status,
+        'status' => 'pending',
+        'duration' => $request->duration,
+         'updated_at' => 'pending'
     ]);
 
-    $hostEmail = $host->host_email;
+    // $hostEmail = $host->host_email;
 
  
-    Mail::to($hostEmail)->send(new NewVisitNotification($visit));
+    // Mail::to($hostEmail)->send(new NewVisitNotification($visit));
     
 }
 
@@ -132,6 +137,29 @@ class VisitController extends Controller
     {
      
     }
+
+
+
+    public function checkout(Request $request, $visit_id)
+{
+    // Find the visit record or fail if it doesn't exist
+    $visit = Visit::findOrFail($visit_id);
+
+    // Validate only the fields we want to update
+    $request->validate([
+        'status' => 'required|string|max:255',
+        'duration' => 'required'
+    ]);
+
+    // Update the necessary fields
+    $visit->status = $request->input('status');
+    $visit->duration = $request->input('duration');
+
+    // Save the updated visit record
+    $visit->save();
+
+    echo(response()->json(['message' => 'Visit status updated successfully']));
+}
 
 
 

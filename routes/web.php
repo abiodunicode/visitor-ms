@@ -46,6 +46,9 @@ Route::resource('hosts', HostController::class)->middleware('auth');
 
 Route::post('hosts', [HostController::class, 'store'])->name('hosts.store');
 
+Route::patch('/visits/checkout/{visit}', [VisitController::class, 'checkout'])->name('visits.checkout')->middleware('auth');
+
+
 
 
 Route::resource('visits',VisitController::class)->middleware('auth');
