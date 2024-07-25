@@ -108,7 +108,7 @@ class VisitController extends Controller
             'purpose' => $request->purpose,
             'status' => 'visit-in',
             'duration' => $request->duration,
-            'updated_at' => 'pending'
+
         ]);
 
         $hostEmail = $host->host_email;
