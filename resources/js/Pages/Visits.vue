@@ -6,7 +6,7 @@ import TextInputx from '@/Components/TextInputx.vue';
 import InputLabelx from '@/Components/InputLabelx.vue';
 import PrimaryButtonx from '@/Components/PrimaryButtonx.vue';
 import DeleteConfirmationModal from '@/Components/DeleteConfirmatiomModal.vue'
-import axios from 'axios';
+import { format, parseISO } from 'date-fns';
 
 
 
@@ -47,6 +47,7 @@ const deleteCancelButtonText = ref("No, cancel");
 
 
 const selectedVisitor = ref<Visitor | null>(null);
+
 const selectedHost = ref<Host | null>(null);
 const selectedVisits = ref<Data | null>(null);
 const showDetails = ref(false);
@@ -152,8 +153,19 @@ const selectHost = (hosts: { host_id: number, host_name: string }) => {
 const showMe = (visit: Data) => {
     selectedVisitor.value = props.allVisitors.find(v => v.full_name === visit.visitor_name) || null;
     selectedHost.value = props.allHosts.find(h => h.host_name === visit.host_name) || null;
+    selectedVisits.value = props.visits.find(h => h.check_in_time  === visit.check_in_time ) || null;
     showDetails.value = true;
 };
+
+
+const formattedCheckInTime = computed(() => {
+  if (selectedVisits.value && selectedVisits.value.check_in_time) {
+    // Format the check-in time
+    return format(parseISO(selectedVisits.value.check_in_time), 'do MMMM yyyy, hh:mm a');
+  } else {
+    return 'No check-in time available';
+  }
+});
 
 
 const hideDetais = () => {
@@ -192,6 +204,7 @@ const submit = () => {
     form.post(route('visits.store'), {
         onFinish: () => {
             showModal.value = false;
+            printDiv();
         },
     });
 };
@@ -283,7 +296,7 @@ const paginatedVisits = computed(() => {
     watch(() => props.visits, (newVisits) => {
       searchVisits();
     });
-  
+
 
     const calculateDurationInMinutes = (checkInTime: string | number | Date, checkOutTime: string | number | Date) => {
   const checkInDate = new Date(checkInTime);
@@ -298,11 +311,41 @@ const paginatedVisits = computed(() => {
   return diffMinutes;
 };
 
+const printDiv = () => {
+  const div = document.getElementById('printableDiv');
+
+  if (!div) {
+    console.error('The element to print was not found.');
+    return;
+  }
+
+  const divContents = div.innerHTML;
+  const printWindow = window.open('', '', 'height=400,width=600');
+
+  if (!printWindow) {
+    console.error('Failed to open the print window.');
+    return;
+  }
+
+  printWindow.document.write('<html><head><title>Print</title>');
+
+  // Optionally add styles
+  printWindow.document.write('<style>body { font-family: Arial, sans-serif; }</style>');
+
+  printWindow.document.write('</head><body >');
+  printWindow.document.write(divContents);
+  printWindow.document.write('</body></html>');
+
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+};
+
 
 // const checkout = (visit :Data) => {
-  
+
 // visit.status = 'completed'
-  
+
 
 //     }
 
@@ -312,7 +355,7 @@ const checkout = (visit: Data, form: any) => {
   const durationInMinutes = calculateDurationInMinutes(visit.check_in_time, visit.check_out_time);
 
 
-  visit.status = 'completed';
+  visit.status = 'visitor-out';
   visit.duration = durationInMinutes
   form.duration = visit.duration
   form.status = visit.status
@@ -328,6 +371,12 @@ const checkout = (visit: Data, form: any) => {
 function id(value: Visitor, index: number, obj: Visitor[]): unknown {
     throw new Error('Function not implemented.');
 }
+
+const options = [
+
+  { value: 'visitor-in', text: 'Visitor In' },
+  { value: 'visitor-out', text: 'Visitor Out' }
+];
 </script>
 
 <template>
@@ -440,9 +489,19 @@ function id(value: Visitor, index: number, obj: Visitor[]): unknown {
                                                     </div>
                                                     <div class="mb-5">
                                                         <InputLabelx for="name" value="Status" />
-                                                        <TextInputx id="status" type="text" v-model="form.status"
-                                                            required autofocus placeholder="Sales" autocomplete="off" />
+                                                        <!-- <TextInputx id="status" type="text" v-model="form.status"
+                                                            required autofocus placeholder="Sales" autocomplete="off" /> -->
+
+                                                            <select v-model="form.status" name="activity" id="status" class="form-control block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                                            <!-- <option value="">Select Status</option> -->
+                                                            <option v-for="option in options" :key="option.value" :value="option.value">
+                                                                {{ option.text }}
+                                                            </option>
+                                                            </select>
+                                                            <!-- <p>Selected Status: {{ status }}</p> -->
+
                                                     </div>
+
                                                 </form>
                                             </div>
                                             <div
@@ -544,15 +603,17 @@ function id(value: Visitor, index: number, obj: Visitor[]): unknown {
                                         {{ visit.duration }}
                                     </td>
                                     <td class="px-6 py-4">
-                                        <a href="#" @click.stop="checkout(visit,form)"
-                                        class="font-medium text-green-600 hover:underline">checkout</a> /
-                                        <a href="#" @click.stop="editModal(visit)"
-                                            class="font-medium text-blue-600 hover:underline">Edit</a> /
+                                        <a v-show="visit.status == 'visitor-in'" href="#" @click.stop="checkout(visit,form)"
+                                        class="font-medium text-green-600 hover:underline">checkout /</a>
+
+                                        <a  href="#" @click.stop="editModal(visit)"
+                                            class="font-medium text-blue-600 hover:underline">Edit /</a>
+
                                         <a href="#" @click.stop="getId(visit),console.log(currentId)"
                                             class="font-medium text-red-600 hover:underline">Delete</a>
                                     </td>
                                 </tr>
-                                
+
 
                             </tbody>
                         </table>
@@ -573,12 +634,13 @@ function id(value: Visitor, index: number, obj: Visitor[]): unknown {
       </button>
     </div>
 
-                        <div v-show="showDetails" class="fixed inset-0 bg-black bg-opacity-50"></div>
+                        <div  v-show="showDetails" class="fixed inset-0 bg-black bg-opacity-50"></div>
                         <div :class="{ 'hidden': !showDetails }"
                             class="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full flex"
                             aria-modal="true" role="dialog">
                             <div class="relative w-full max-w-md max-h-full p-4">
                                 <div class="relative bg-white rounded-lg shadow">
+                                    <div>  <button @click="printDiv">Print</button></div>
                                     <button @click="hideDetais" type="button"
                                         class="absolute inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg top-1 right-1 hover:bg-gray-200 hover:text-gray-900 ms-auto dark:hover:bg-gray-600 dark:hover:text-white">
                                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
@@ -588,8 +650,31 @@ function id(value: Visitor, index: number, obj: Visitor[]): unknown {
                                         </svg>
                                         <span class="sr-only">Close modal</span>
                                     </button>
+                                    <body id="printableDiv" class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-4 border border-gray-300 rounded-lg shadow-lg w-80">
+        <div class="flex items-center mb-4">
+            <span class="text-lg font-bold text-gray-700">Tag # 1{{ selectedVisitor?.id }}5</span>
+        </div>
+        <div class="mb-2">
+            <p class="text-sm font-medium text-gray-600">Visitor's Name:</p>
+            <p class="text-md text-gray-800">{{ selectedVisitor?.full_name }}</p>
+        </div>
+        <div class="mb-2">
+            <p class="text-sm font-medium text-gray-600">Receiving Visitor:</p>
+            <p class="text-md text-gray-800">{{ selectedHost?.host_name }}</p>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-600">Entry Date / Time:</p>
+            <p class="text-md text-gray-800"> {{ formattedCheckInTime  }} </p>
+        </div>
 
-                                    <table class="w-full text-sm text-left rounded gray-500 rtl:text-right">
+        <div>
+            <p class="text-sm font-medium text-gray-600">Tag is restricted to {{ selectedHost?.host_department }} department only</p>
+            <!-- <p class="text-md text-gray-800"> {{ formattedCheckInTime  }} </p> -->
+        </div>
+    </div>
+</body>
+                     <!-- <table class="w-full text-sm text-left rounded gray-500 rtl:text-right">
                                         <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                                             <tr class="divide-x divide-slate-700">
 
@@ -629,7 +714,7 @@ function id(value: Visitor, index: number, obj: Visitor[]): unknown {
                                         </tbody>
 
 
-                                    </table>
+                                    </table> -->
                                     <!-- </div> -->
                                 </div>
                             </div>
