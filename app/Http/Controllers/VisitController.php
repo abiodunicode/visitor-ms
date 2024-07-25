@@ -112,12 +112,9 @@ class VisitController extends Controller
         ]);
 
         $hostEmail = $host->host_email;
-        $details = [
-            'title' => 'Test Email',
-            'body' => 'This is a test email.'
-        ];
 
-        Mail::to($hostEmail)->send(new NewVisitNotification($details));
+
+        Mail::to($hostEmail)->send(new NewVisitNotification($visit));
     }
 
 
